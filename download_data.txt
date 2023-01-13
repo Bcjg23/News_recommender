@@ -1,0 +1,6 @@
+curl -# -o training_set.zip https://mind201910small.blob.core.windows.net/release/MINDlarge_train.zip
+curl -# -o validation_set.zip https://mind201910small.blob.core.windows.net/release/MINDlarge_dev.zip
+curl -# -o test_set.zip https://mind201910small.blob.core.windows.net/release/MINDlarge_test.zip
+curl -# -O https://github.com/msnews/msnews.github.io/blob/master/assets/doc/introduction.md
+
+unzip filename.zip -d /path/to/directory
