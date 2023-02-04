@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH -p t4v2
+#SBATCH --qos high
+#SBATCH --gres=gpu:1
+#SBATCH -c 4
+#SBATCH --mem=64G
+#SBATCH --job-name=lstur.job
+#SBATCH --output=lstur_5epochs.out
+
+# activate the environment
+source /ssd003/projects/aieng/public/recsys/bin/activate
+
+# run python file 
+python LSTUR.py

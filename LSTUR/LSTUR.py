@@ -17,6 +17,7 @@ from recommenders.models.newsrec.models.lstur import LSTURModel
 from recommenders.models.newsrec.io.mind_iterator import MINDIterator
 from recommenders.models.newsrec.newsrec_utils import get_mind_data_set
 
+print("*** LSTUR model ***")
 print("System version: {}".format(sys.version))
 print("Tensorflow version: {}".format(tf.__version__))
 
@@ -27,7 +28,7 @@ batch_size = 32
 
 # Options: demo, small, large
 MIND_type = 'large'
-
+print("*** Dataset:", MIND_type)
 
 # ### Dowload data
 cwd = os.getcwd()
@@ -35,25 +36,13 @@ data_path = cwd + '/data/' #tmpdir.name
 
 train_news_file = os.path.join(data_path, 'train', r'news.tsv')
 train_behaviors_file = os.path.join(data_path, 'train', r'behaviors.tsv')
-valid_news_file = os.path.join(data_path, 'dev', r'news.tsv')
-valid_behaviors_file = os.path.join(data_path, 'dev', r'behaviors.tsv')
+valid_news_file = os.path.join(data_path, 'valid', r'news.tsv')
+valid_behaviors_file = os.path.join(data_path, 'valid', r'behaviors.tsv')
 
-data_path_LSTUR = cwd + '/data_LSTUR/' 
-wordEmb_file = os.path.join(data_path_LSTUR, "utils", "embedding.npy")
-userDict_file = os.path.join(data_path_LSTUR, "utils", "uid2index.pkl")
-wordDict_file = os.path.join(data_path_LSTUR, "utils", "word_dict.pkl")
-yaml_file = os.path.join(data_path_LSTUR, "utils", r'lstur.yaml')
-
-mind_url, mind_train_dataset, mind_dev_dataset, mind_utils = get_mind_data_set(MIND_type)
-
-if not os.path.exists(train_news_file):
-    download_deeprec_resources(mind_url, os.path.join(data_path, 'train'), mind_train_dataset)
-    
-if not os.path.exists(valid_news_file):
-    download_deeprec_resources(mind_url,                                os.path.join(data_path, 'valid'), mind_dev_dataset)
-    
-if not os.path.exists(yaml_file):
-    download_deeprec_resources(r'https://recodatasets.z20.web.core.windows.net/newsrec/',                                os.path.join(data_path_LSTUR, 'utils'), mind_utils)
+wordEmb_file = os.path.join(data_path, "utils", "embedding.npy")
+userDict_file = os.path.join(data_path, "utils", "uid2index.pkl")
+wordDict_file = os.path.join(data_path, "utils", "word_dict.pkl")
+yaml_file = os.path.join(data_path, "utils", r'lstur.yaml')
 
 
 # Parameters
@@ -63,6 +52,7 @@ hparams = prepare_hparams(yaml_file,
                           userDict_file=userDict_file,
                           batch_size=batch_size,
                           epochs=epochs)
+print("*** Parameters:")
 print(hparams)
 
 iterator = MINDIterator
@@ -70,17 +60,21 @@ iterator = MINDIterator
 # Train the LSTUR model
 model = LSTURModel(hparams, iterator, seed=seed)
 
+print("*** Model Baseline")
 print(model.run_eval(valid_news_file, valid_behaviors_file))
 
+print("*** Fiting model")
 model.fit(train_news_file, train_behaviors_file, valid_news_file, valid_behaviors_file)
 
 res_syn = model.run_eval(valid_news_file, valid_behaviors_file)
+print("*** Metrics after training")
 print(res_syn)
 
 # Save the model
 model_path = os.path.join(data_path, "model")
 os.makedirs(model_path, exist_ok=True)
 
+print("Model saving")
 model.model.save_weights(os.path.join(model_path, "lstur_ckpt"))
 
 
@@ -88,7 +82,7 @@ model.model.save_weights(os.path.join(model_path, "lstur_ckpt"))
 group_impr_indexes, group_labels, group_preds = model.run_fast_eval(valid_news_file, valid_behaviors_file)
 
 with open(os.path.join(data_path, 'prediction.txt'), 'w') as f:
-    for impr_index, preds in tqdm(zip(group_impr_indexes, group_preds)):
+    for impr_index, preds in zip(group_impr_indexes, group_preds):
         impr_index += 1
         pred_rank = (np.argsort(np.argsort(preds)[::-1]) + 1).tolist()
         pred_rank = '[' + ','.join([str(i) for i in pred_rank]) + ']'
